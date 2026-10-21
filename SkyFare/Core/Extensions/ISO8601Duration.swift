@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Parses the ISO-8601 durations Amadeus uses for flight and layover lengths, such as `PT3H5M`.
+/// Parses the ISO-8601 durations flight APIs use for leg and layover lengths, such as `PT3H5M`.
 enum ISO8601Duration {
     static func seconds(from text: String) -> TimeInterval? {
         guard text.hasPrefix("P") else { return nil }

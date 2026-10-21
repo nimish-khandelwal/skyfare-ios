@@ -1,0 +1,12 @@
+{
+  "errors": [
+    {
+      "type": "validation_error",
+      "title": "Invalid departure date",
+      "message": "departure_date must be today or later",
+      "code": "validation_departure_date_invalid",
+      "documentation_url": "https://duffel.com/docs/api/overview/response-handling"
+    }
+  ],
+  "meta": { "request_id": "req_0000AaBbCcDd", "status": 422 }
+}

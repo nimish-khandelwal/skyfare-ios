@@ -16,7 +16,11 @@ struct Endpoint: Sendable, Equatable {
     var body: Data?
     var requiresAuthorization: Bool = true
 
-    func urlRequest(relativeTo baseURL: URL, accessToken: String?) throws -> URLRequest {
+    func urlRequest(
+        relativeTo baseURL: URL,
+        accessToken: String?,
+        defaultHeaders: [String: String] = [:]
+    ) throws -> URLRequest {
         guard var components = URLComponents(
             url: baseURL.appendingPathComponent(path),
             resolvingAgainstBaseURL: false
@@ -35,7 +39,14 @@ struct Endpoint: Sendable, Equatable {
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.httpBody = body
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        for (field, value) in defaultHeaders {
+            request.setValue(value, forHTTPHeaderField: field)
+        }
+
+        if body != nil {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
 
         for (field, value) in headers {
             request.setValue(value, forHTTPHeaderField: field)

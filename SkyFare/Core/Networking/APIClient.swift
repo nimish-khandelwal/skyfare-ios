@@ -21,7 +21,9 @@ extension APIClient {
     }
 }
 
-struct AmadeusAPIClient: APIClient {
+/// A `URLSession`-backed client that knows nothing about any particular flight provider:
+/// the base URL, default headers and token scheme all arrive by injection.
+struct HTTPAPIClient: APIClient {
     private let session: HTTPSession
     private let configuration: AppConfiguration
     private let tokenProvider: AccessTokenProviding
@@ -56,7 +58,12 @@ struct AmadeusAPIClient: APIClient {
         as responseType: Response.Type
     ) async throws -> Response {
         let token = endpoint.requiresAuthorization ? try await tokenProvider.accessToken() : nil
-        let request = try endpoint.urlRequest(relativeTo: configuration.baseURL, accessToken: token)
+
+        let request = try endpoint.urlRequest(
+            relativeTo: configuration.baseURL,
+            accessToken: token,
+            defaultHeaders: configuration.defaultHeaders
+        )
 
         let data: Data
         let response: URLResponse
@@ -83,13 +90,13 @@ struct AmadeusAPIClient: APIClient {
         switch response.statusCode {
         case 200..<300:
             return
-        case 401:
+        case 401, 403:
             throw APIError.unauthorized
         case 429:
             let header = response.value(forHTTPHeaderField: "Retry-After")
             throw APIError.rateLimited(retryAfter: header.flatMap(TimeInterval.init))
         default:
-            let details = (try? decoder.decode(AmadeusErrorEnvelope.self, from: data))?.errors ?? []
+            let details = (try? decoder.decode(APIErrorEnvelope.self, from: data))?.errors ?? []
             throw APIError.server(status: response.statusCode, details: details)
         }
     }

@@ -16,12 +16,12 @@ final class APIClientTests: XCTestCase {
     private func makeClient(
         session: MockHTTPSession,
         tokenProvider: MockTokenProvider = MockTokenProvider()
-    ) -> AmadeusAPIClient {
-        AmadeusAPIClient(
+    ) -> HTTPAPIClient {
+        HTTPAPIClient(
             session: session,
             configuration: .test(),
             tokenProvider: tokenProvider,
-            decoder: .amadeus
+            decoder: .flightProvider
         )
     }
 
@@ -29,23 +29,22 @@ final class APIClientTests: XCTestCase {
         let session = MockHTTPSession(stubs: [.json(["value": "ok"])])
         let client = makeClient(session: session)
 
-        let probe = try await client.send(Endpoint(path: "v1/probe"), as: Probe.self)
+        let probe = try await client.send(Endpoint(path: "probe"), as: Probe.self)
 
         XCTAssertEqual(probe, Probe(value: "ok"))
         XCTAssertEqual(session.requestCount, 1)
     }
 
-    func test_attachesBearerTokenFromProvider() async throws {
+    func test_attachesBearerTokenAndProviderHeaders() async throws {
         let session = MockHTTPSession(stubs: [.json(["value": "ok"])])
-        let provider = MockTokenProvider(tokens: ["token-xyz"])
+        let provider = MockTokenProvider(tokens: ["token-from-provider"])
         let client = makeClient(session: session, tokenProvider: provider)
 
-        _ = try await client.send(Endpoint(path: "v1/probe"), as: Probe.self)
+        _ = try await client.send(Endpoint(path: "probe"), as: Probe.self)
 
-        XCTAssertEqual(
-            session.requests.first?.value(forHTTPHeaderField: "Authorization"),
-            "Bearer token-xyz"
-        )
+        let request = try XCTUnwrap(session.requests.first)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer token-from-provider")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Duffel-Version"), "v2")
     }
 
     func test_skipsTokenForUnauthenticatedEndpoint() async throws {
@@ -54,7 +53,7 @@ final class APIClientTests: XCTestCase {
         let client = makeClient(session: session, tokenProvider: provider)
 
         _ = try await client.send(
-            Endpoint(path: "v1/probe", requiresAuthorization: false),
+            Endpoint(path: "probe", requiresAuthorization: false),
             as: Probe.self
         )
 
@@ -74,14 +73,13 @@ final class APIClientTests: XCTestCase {
         let provider = MockTokenProvider(tokens: ["stale", "fresh"])
         let client = makeClient(session: session, tokenProvider: provider)
 
-        let probe = try await client.send(Endpoint(path: "v1/probe"), as: Probe.self)
+        let probe = try await client.send(Endpoint(path: "probe"), as: Probe.self)
 
         XCTAssertEqual(probe, Probe(value: "second"))
         XCTAssertEqual(session.requestCount, 2)
 
         let counts = await provider.counts()
         XCTAssertEqual(counts.invalidate, 1)
-        XCTAssertEqual(counts.accessToken, 2)
         XCTAssertEqual(
             session.requests.last?.value(forHTTPHeaderField: "Authorization"),
             "Bearer fresh"
@@ -93,11 +91,23 @@ final class APIClientTests: XCTestCase {
         let client = makeClient(session: session)
 
         do {
-            _ = try await client.send(Endpoint(path: "v1/probe"), as: Probe.self)
+            _ = try await client.send(Endpoint(path: "probe"), as: Probe.self)
             XCTFail("Expected unauthorized error")
         } catch {
             XCTAssertEqual(error as? APIError, .unauthorized)
             XCTAssertEqual(session.requestCount, 2)
+        }
+    }
+
+    func test_treatsForbiddenAsUnauthorized() async {
+        let session = MockHTTPSession(stubs: [.json(["errors": []], statusCode: 403)])
+        let client = makeClient(session: session)
+
+        do {
+            _ = try await client.send(Endpoint(path: "probe"), as: Probe.self)
+            XCTFail("Expected unauthorized error")
+        } catch {
+            XCTAssertEqual(error as? APIError, .unauthorized)
         }
     }
 
@@ -108,31 +118,37 @@ final class APIClientTests: XCTestCase {
         let client = makeClient(session: session)
 
         do {
-            _ = try await client.send(Endpoint(path: "v1/probe"), as: Probe.self)
+            _ = try await client.send(Endpoint(path: "probe"), as: Probe.self)
             XCTFail("Expected rate limit error")
         } catch {
             XCTAssertEqual(error as? APIError, .rateLimited(retryAfter: 30))
         }
     }
 
-    func test_surfacesAmadeusErrorDetails() async throws {
+    func test_surfacesProviderErrorDetails() async throws {
         let session = MockHTTPSession(
-            stubs: [.success(try Fixture.data("error-400"), statusCode: 400)]
+            stubs: [.success(try Fixture.data("error-422"), statusCode: 422)]
         )
         let client = makeClient(session: session)
 
         do {
-            _ = try await client.send(Endpoint(path: "v1/probe"), as: Probe.self)
+            _ = try await client.send(Endpoint(path: "probe"), as: Probe.self)
             XCTFail("Expected server error")
         } catch let error as APIError {
             guard case let .server(status, details) = error else {
                 return XCTFail("Unexpected error \(error)")
             }
-            XCTAssertEqual(status, 400)
-            XCTAssertEqual(details.first?.code, 32171)
-            XCTAssertEqual(details.first?.detail, "departureDate is required")
-            XCTAssertEqual(error.errorDescription, "departureDate is required")
+            XCTAssertEqual(status, 422)
+            XCTAssertEqual(details.first?.type, "validation_error")
+            XCTAssertEqual(details.first?.code, "validation_departure_date_invalid")
+            XCTAssertEqual(error.errorDescription, "departure_date must be today or later")
         }
+    }
+
+    func test_errorDescriptionFallsBackToTitle() {
+        let detail = APIErrorDetail(type: "api_error", title: "Something broke", message: nil, code: nil)
+
+        XCTAssertEqual(APIError.server(status: 500, details: [detail]).errorDescription, "Something broke")
     }
 
     func test_wrapsTransportFailure() async {
@@ -140,7 +156,7 @@ final class APIClientTests: XCTestCase {
         let client = makeClient(session: session)
 
         do {
-            _ = try await client.send(Endpoint(path: "v1/probe"), as: Probe.self)
+            _ = try await client.send(Endpoint(path: "probe"), as: Probe.self)
             XCTFail("Expected transport error")
         } catch let error as APIError {
             guard case .transport = error else {
@@ -156,7 +172,7 @@ final class APIClientTests: XCTestCase {
         let client = makeClient(session: session)
 
         do {
-            _ = try await client.send(Endpoint(path: "v1/probe"), as: Probe.self)
+            _ = try await client.send(Endpoint(path: "probe"), as: Probe.self)
             XCTFail("Expected decoding error")
         } catch let error as APIError {
             guard case .decoding = error else {

@@ -21,17 +21,16 @@ struct AppDependencies: Sendable {
             return .sample
         }
 
-        let tokenProvider = AmadeusTokenProvider(session: session, configuration: configuration)
-        let client = AmadeusAPIClient(
+        let client = HTTPAPIClient(
             session: session,
             configuration: configuration,
-            tokenProvider: tokenProvider,
-            decoder: .amadeus
+            tokenProvider: StaticAccessTokenProvider(token: configuration.accessToken),
+            decoder: .flightProvider
         )
 
         return AppDependencies(
-            airportRepository: AmadeusAirportRepository(client: client),
-            offerRepository: AmadeusFlightOfferRepository(client: client),
+            airportRepository: DuffelAirportRepository(client: client),
+            offerRepository: DuffelFlightOfferRepository(client: client),
             isUsingSampleData: false
         )
     }

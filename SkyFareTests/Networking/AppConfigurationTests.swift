@@ -9,9 +9,8 @@ import XCTest
 @testable import SkyFare
 
 final class AppConfigurationTests: XCTestCase {
-    func test_hasCredentialsRequiresBothValues() {
-        XCTAssertFalse(AppConfiguration.test(clientID: "", clientSecret: "secret").hasCredentials)
-        XCTAssertFalse(AppConfiguration.test(clientID: "id", clientSecret: "").hasCredentials)
+    func test_hasCredentialsRequiresAToken() {
+        XCTAssertFalse(AppConfiguration.test(accessToken: "").hasCredentials)
         XCTAssertTrue(AppConfiguration.test().hasCredentials)
     }
 
@@ -19,27 +18,38 @@ final class AppConfigurationTests: XCTestCase {
         let configuration = AppConfiguration.resolved(
             bundle: .main,
             environment: [
-                AppConfiguration.InfoKey.clientID: "env-id",
-                AppConfiguration.InfoKey.clientSecret: "env-secret",
-                AppConfiguration.InfoKey.baseURL: "https://api.example.com"
+                AppConfiguration.InfoKey.accessToken: "token-from-environment",
+                AppConfiguration.InfoKey.baseURL: "https://api.example.com",
+                AppConfiguration.InfoKey.apiVersion: "v3"
             ]
         )
 
-        XCTAssertEqual(configuration.clientID, "env-id")
-        XCTAssertEqual(configuration.clientSecret, "env-secret")
+        XCTAssertEqual(configuration.accessToken, "token-from-environment")
         XCTAssertEqual(configuration.baseURL, URL(string: "https://api.example.com"))
+        XCTAssertEqual(configuration.apiVersion, "v3")
     }
 
-    func test_fallsBackToDefaultBaseURLWhenUnset() {
+    func test_fallsBackToDefaultsWhenUnset() {
         let configuration = AppConfiguration.resolved(bundle: Bundle(for: Self.self), environment: [:])
+
         XCTAssertEqual(configuration.baseURL, AppConfiguration.defaultBaseURL)
+        XCTAssertEqual(configuration.apiVersion, AppConfiguration.defaultAPIVersion)
+        XCTAssertTrue(configuration.accessToken.isEmpty)
     }
 
     func test_blankEnvironmentValuesAreIgnored() {
         let configuration = AppConfiguration.resolved(
             bundle: Bundle(for: Self.self),
-            environment: [AppConfiguration.InfoKey.clientID: "   "]
+            environment: [AppConfiguration.InfoKey.accessToken: "   "]
         )
-        XCTAssertTrue(configuration.clientID.isEmpty)
+
+        XCTAssertTrue(configuration.accessToken.isEmpty)
+    }
+
+    func test_defaultHeadersCarryTheAPIVersion() {
+        let headers = AppConfiguration.test().defaultHeaders
+
+        XCTAssertEqual(headers["Duffel-Version"], "v2")
+        XCTAssertEqual(headers["Accept"], "application/json")
     }
 }

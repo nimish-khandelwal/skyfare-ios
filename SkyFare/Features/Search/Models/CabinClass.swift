@@ -8,10 +8,10 @@
 import Foundation
 
 enum CabinClass: String, CaseIterable, Identifiable, Sendable {
-    case economy = "ECONOMY"
-    case premiumEconomy = "PREMIUM_ECONOMY"
-    case business = "BUSINESS"
-    case first = "FIRST"
+    case economy
+    case premiumEconomy = "premium_economy"
+    case business
+    case first
 
     var id: String { rawValue }
 

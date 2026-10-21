@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Passenger counts, bounded by the same limits Amadeus enforces on a search.
+/// Passenger counts, bounded by the same limits airline booking flows enforce.
 struct PassengerSelection: Hashable, Sendable {
     static let maximumTravellers = 9
 

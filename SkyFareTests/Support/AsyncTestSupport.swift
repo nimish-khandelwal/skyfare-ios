@@ -36,10 +36,10 @@ func eventually(
 
 extension AppConfiguration {
     static func test(
-        baseURL: URL = URL(string: "https://test.api.amadeus.com")!,
-        clientID: String = "client-id",
-        clientSecret: String = "client-secret"
+        baseURL: URL = URL(string: "https://api.duffel.com")!,
+        accessToken: String = "token-for-tests",
+        apiVersion: String = "v2"
     ) -> AppConfiguration {
-        AppConfiguration(baseURL: baseURL, clientID: clientID, clientSecret: clientSecret)
+        AppConfiguration(baseURL: baseURL, accessToken: accessToken, apiVersion: apiVersion)
     }
 }

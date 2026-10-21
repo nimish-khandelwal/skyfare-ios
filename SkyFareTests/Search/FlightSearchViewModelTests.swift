@@ -122,7 +122,7 @@ final class FlightSearchViewModelTests: XCTestCase {
         viewModel.form.originQuery = "dub"
         await eventually { viewModel.suggestionError != nil }
 
-        XCTAssertEqual(viewModel.suggestionError, "Your API credentials were rejected.")
+        XCTAssertEqual(viewModel.suggestionError, "Your access token was rejected.")
         XCTAssertTrue(viewModel.originSuggestions.isEmpty)
         XCTAssertFalse(viewModel.isLoadingSuggestions(for: .origin))
     }
@@ -188,7 +188,7 @@ final class FlightSearchViewModelTests: XCTestCase {
 
         await eventually {
             viewModel.state == .failed(
-                "Amadeus API credentials are missing. Add them to Config/Secrets.xcconfig."
+                "A Duffel access token is missing. Add one to Config/Secrets.xcconfig."
             )
         }
     }

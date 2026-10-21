@@ -30,7 +30,7 @@ Hit run. It works straight away — no API key, no signup.
   (an infant can't fly without an adult, nine seats max)
 - Results you can sort by price, duration or departure time
 - Filters for stops, airline, departure window and whether a checked bag is included
-- 127 tests, 94% coverage, no compiler warnings
+- 136 tests, 94% coverage, no compiler warnings
 - CI on every push
 
 ## What's next
@@ -40,14 +40,25 @@ payment · offline trips · push notifications · deep links · Arabic with RTL
 
 ## A note on the data
 
-I built this against the Amadeus Self-Service API — real GDS flight data, the same
-feed travel agencies use. Amadeus shut that free tier down in July 2026, a few months
-after I started. So right now the app ships with bundled sample flights, and I'm
-porting the live integration over to Duffel.
+I started this on the Amadeus Self-Service API. Amadeus shut that free tier down in
+July 2026, a few months in, so I moved the app over to [Duffel](https://duffel.com).
 
-Annoying, but it proved the architecture was right: swapping providers means rewriting
-three files and deleting a fourth. Nothing in the UI or the view models knows or cares
-where a flight came from.
+That turned out to be the useful part. Swapping provider meant rewriting three files
+and deleting a fourth — nothing in the UI, the view models or the domain models knows
+or cares where a flight comes from. The migration is in the git history if you want to
+see the diff.
+
+Without a token the app runs on bundled sample flights, which is how the screenshots
+above were taken. To use real data, grab a free test token at
+[app.duffel.com/join](https://app.duffel.com/join) (no card needed) and drop it in:
+
+```bash
+cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig
+# paste your duffel_test_... token into the new file
+```
+
+That file is git-ignored. Duffel's test mode returns a fictional airline rather than
+real schedules, which is fine — it exercises the same code path.
 
 ## How it's built
 
@@ -65,9 +76,10 @@ so typing "dubai" fires one request instead of five. Form validation is a second
 pipeline feeding `canSearch`. Everything below the view model is plain async/await.
 
 **The API payload and the app's own models are separate types.** Flight APIs return
-awkward JSON — prices as strings, durations as `PT3H5M`, airline names in a lookup
-table you join yourself, and a field literally named `class`, which is a Swift keyword.
-A mapper absorbs all of that in one place, so the rest of the app stays clean.
+awkward JSON — prices as strings, durations as `PT03H05M`, local departure times with
+no timezone, baggage buried per passenger per segment. A mapper absorbs all of that in
+one place, so the rest of the app stays clean. It's also what made changing provider a
+one-afternoon job instead of a rewrite.
 
 **Validation lives in a plain struct** with no Combine or UIKit in it, which makes the
 rules easy to test directly.
@@ -79,7 +91,7 @@ bundle install
 bundle exec fastlane test
 ```
 
-120 unit tests and 7 UI tests. The unit tests run against recorded API responses, so
+129 unit tests and 7 UI tests. The unit tests run against recorded API responses, so
 they're fast and don't need a network. The UI tests drive the real app and also capture
 the screenshots above.
 

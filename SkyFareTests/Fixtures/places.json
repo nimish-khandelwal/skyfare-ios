@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "type": "airport",
+      "id": "arp_dxb_ae",
+      "name": "Dubai International",
+      "iata_code": "DXB",
+      "iata_city_code": "DXB",
+      "city_name": "Dubai",
+      "iata_country_code": "AE"
+    },
+    {
+      "type": "city",
+      "id": "cit_dub_ie",
+      "name": "Dublin",
+      "iata_code": "DUB",
+      "iata_city_code": "DUB",
+      "city_name": "Dublin",
+      "iata_country_code": "IE"
+    },
+    {
+      "type": "airport",
+      "id": "arp_no_iata",
+      "name": "Airport Without An IATA Code",
+      "iata_country_code": "XX"
+    }
+  ]
+}

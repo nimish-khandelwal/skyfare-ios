@@ -7,14 +7,14 @@
 
 import Foundation
 
-/// Offline data so the app, previews and UI tests run without Amadeus credentials.
+/// Offline data so the app, previews and UI tests run without provider credentials.
 enum SampleData {
     static let dubai = Airport(
         id: "CDXB",
         iataCode: "DXB",
         name: "Dubai International",
         cityName: "Dubai",
-        countryName: "United Arab Emirates",
+        countryCode: "AE",
         kind: .airport
     )
 
@@ -23,7 +23,7 @@ enum SampleData {
         iataCode: "BOM",
         name: "Chhatrapati Shivaji International",
         cityName: "Mumbai",
-        countryName: "India",
+        countryCode: "IN",
         kind: .airport
     )
 
@@ -32,7 +32,7 @@ enum SampleData {
         iataCode: "DEL",
         name: "Indira Gandhi International",
         cityName: "Delhi",
-        countryName: "India",
+        countryCode: "IN",
         kind: .airport
     )
 
@@ -41,7 +41,7 @@ enum SampleData {
         iataCode: "SHJ",
         name: "Sharjah International",
         cityName: "Sharjah",
-        countryName: "United Arab Emirates",
+        countryCode: "AE",
         kind: .airport
     )
 
@@ -92,7 +92,7 @@ enum SampleData {
     }
 
     static func date(_ text: String) -> Date {
-        AmadeusDateFormat.formatter(AmadeusDateFormat.dateTime).date(from: text) ?? Date()
+        APIDateFormat.formatter(APIDateFormat.dateTime).date(from: text) ?? Date()
     }
 
     private static func offer(
@@ -193,7 +193,7 @@ enum SampleData {
 struct SampleAirportRepository: AirportRepository {
     func airports(matching keyword: String) async throws -> [Airport] {
         let needle = keyword.lowercased()
-        guard needle.count >= AmadeusAirportRepository.minimumKeywordLength else { return [] }
+        guard needle.count >= DuffelAirportRepository.minimumKeywordLength else { return [] }
 
         return SampleData.airports.filter {
             $0.cityName.lowercased().contains(needle)

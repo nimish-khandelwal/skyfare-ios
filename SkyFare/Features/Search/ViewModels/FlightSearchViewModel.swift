@@ -152,7 +152,7 @@ final class FlightSearchViewModel: ObservableObject {
 
         form.clearSelection(for: field)
 
-        guard trimmed.count >= AmadeusAirportRepository.minimumKeywordLength else {
+        guard trimmed.count >= DuffelAirportRepository.minimumKeywordLength else {
             setSuggestions([], for: field)
             loadingFields.remove(field)
             return

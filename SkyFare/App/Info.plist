@@ -2,12 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>AMADEUS_BASE_URL</key>
-	<string>$(AMADEUS_BASE_URL)</string>
-	<key>AMADEUS_CLIENT_ID</key>
-	<string>$(AMADEUS_CLIENT_ID)</string>
-	<key>AMADEUS_CLIENT_SECRET</key>
-	<string>$(AMADEUS_CLIENT_SECRET)</string>
+	<key>DUFFEL_ACCESS_TOKEN</key>
+	<string>$(DUFFEL_ACCESS_TOKEN)</string>
+	<key>DUFFEL_API_VERSION</key>
+	<string>$(DUFFEL_API_VERSION)</string>
+	<key>DUFFEL_BASE_URL</key>
+	<string>$(DUFFEL_BASE_URL)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

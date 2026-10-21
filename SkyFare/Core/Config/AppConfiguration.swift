@@ -9,22 +9,31 @@ import Foundation
 
 /// Credentials and endpoints the app needs at launch, resolved from the build configuration.
 struct AppConfiguration: Sendable, Equatable {
-    static let defaultBaseURL = URL(string: "https://test.api.amadeus.com")!
+    static let defaultBaseURL = URL(string: "https://api.duffel.com")!
+    static let defaultAPIVersion = "v2"
 
     let baseURL: URL
-    let clientID: String
-    let clientSecret: String
+    let accessToken: String
+    let apiVersion: String
 
     var hasCredentials: Bool {
-        !clientID.isEmpty && !clientSecret.isEmpty
+        !accessToken.isEmpty
+    }
+
+    /// Headers every request to the flight provider must carry.
+    var defaultHeaders: [String: String] {
+        [
+            "Duffel-Version": apiVersion,
+            "Accept": "application/json"
+        ]
     }
 }
 
 extension AppConfiguration {
     enum InfoKey {
-        static let baseURL = "AMADEUS_BASE_URL"
-        static let clientID = "AMADEUS_CLIENT_ID"
-        static let clientSecret = "AMADEUS_CLIENT_SECRET"
+        static let baseURL = "DUFFEL_BASE_URL"
+        static let accessToken = "DUFFEL_ACCESS_TOKEN"
+        static let apiVersion = "DUFFEL_API_VERSION"
     }
 
     /// Reads configuration from the app's `Info.plist`, letting environment variables win so that
@@ -34,12 +43,11 @@ extension AppConfiguration {
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> AppConfiguration {
         let baseURLString = value(for: InfoKey.baseURL, bundle: bundle, environment: environment)
-        let baseURL = baseURLString.flatMap(URL.init(string:)) ?? defaultBaseURL
 
         return AppConfiguration(
-            baseURL: baseURL,
-            clientID: value(for: InfoKey.clientID, bundle: bundle, environment: environment) ?? "",
-            clientSecret: value(for: InfoKey.clientSecret, bundle: bundle, environment: environment) ?? ""
+            baseURL: baseURLString.flatMap(URL.init(string:)) ?? defaultBaseURL,
+            accessToken: value(for: InfoKey.accessToken, bundle: bundle, environment: environment) ?? "",
+            apiVersion: value(for: InfoKey.apiVersion, bundle: bundle, environment: environment) ?? defaultAPIVersion
         )
     }
 

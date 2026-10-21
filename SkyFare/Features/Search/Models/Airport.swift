@@ -9,8 +9,8 @@ import Foundation
 
 struct Airport: Identifiable, Hashable, Sendable {
     enum Kind: String, Sendable {
-        case airport = "AIRPORT"
-        case city = "CITY"
+        case airport
+        case city
         case unknown
     }
 
@@ -18,7 +18,7 @@ struct Airport: Identifiable, Hashable, Sendable {
     let iataCode: String
     let name: String
     let cityName: String
-    let countryName: String
+    let countryCode: String
     let kind: Kind
 
     var displayTitle: String {
@@ -26,48 +26,41 @@ struct Airport: Identifiable, Hashable, Sendable {
     }
 
     var displaySubtitle: String {
-        name.capitalizedWords
+        countryCode.isEmpty ? name : "\(name) · \(countryCode)"
     }
 }
 
-struct LocationSearchResponse: Decodable, Sendable {
-    let data: [LocationPayload]
-}
-
-struct LocationPayload: Decodable, Sendable {
-    struct Address: Decodable, Sendable {
-        let cityName: String?
-        let countryName: String?
-    }
-
+struct PlacePayload: Decodable, Sendable {
     let id: String?
-    let subType: String?
+    let type: String?
     let name: String?
-    let detailedName: String?
     let iataCode: String?
-    let address: Address?
+    let iataCityCode: String?
+    let cityName: String?
+    let iataCountryCode: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case type
+        case name
+        case iataCode = "iata_code"
+        case iataCityCode = "iata_city_code"
+        case cityName = "city_name"
+        case iataCountryCode = "iata_country_code"
+    }
 }
 
-extension LocationPayload {
+extension PlacePayload {
     var asAirport: Airport? {
         guard let iataCode, !iataCode.isEmpty else { return nil }
 
         return Airport(
             id: id ?? iataCode,
             iataCode: iataCode,
-            name: (name ?? detailedName ?? iataCode).capitalizedWords,
-            cityName: (address?.cityName ?? name ?? iataCode).capitalizedWords,
-            countryName: (address?.countryName ?? "").capitalizedWords,
-            kind: Airport.Kind(rawValue: subType ?? "") ?? .unknown
+            name: name ?? iataCode,
+            cityName: cityName ?? name ?? iataCode,
+            countryCode: iataCountryCode ?? "",
+            kind: Airport.Kind(rawValue: type ?? "") ?? .unknown
         )
-    }
-}
-
-extension String {
-    /// Amadeus returns names in upper case, which reads badly in a list.
-    var capitalizedWords: String {
-        split(separator: " ")
-            .map { $0.capitalized }
-            .joined(separator: " ")
     }
 }

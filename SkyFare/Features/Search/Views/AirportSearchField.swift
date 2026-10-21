@@ -48,7 +48,7 @@ struct AirportSearchField: View {
             }
 
             if let selection {
-                Text(selection.countryName.isEmpty ? selection.displaySubtitle : "\(selection.displaySubtitle) · \(selection.countryName)")
+                Text(selection.displaySubtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

@@ -1,0 +1,131 @@
+{
+  "data": {
+    "id": "orq_0000AaBbCcDdEeFfGgHhIi",
+    "live_mode": false,
+    "cabin_class": "economy",
+    "created_at": "2026-10-20T09:00:00.123456Z",
+    "passengers": [
+      { "id": "pas_0000AaBbCcDd", "type": "adult" }
+    ],
+    "slices": [
+      {
+        "origin": { "iata_code": "DXB" },
+        "destination": { "iata_code": "BOM" },
+        "departure_date": "2026-11-10"
+      }
+    ],
+    "offers": [
+      {
+        "id": "off_0000direct",
+        "live_mode": false,
+        "total_amount": "650.00",
+        "total_currency": "AED",
+        "base_amount": "500.00",
+        "tax_amount": "150.00",
+        "total_emissions_kg": "212",
+        "expires_at": "2026-10-20T10:00:00.000000Z",
+        "owner": { "id": "arl_g9", "iata_code": "G9", "name": "Air Arabia" },
+        "passengers": [ { "id": "pas_0000AaBbCcDd", "type": "adult" } ],
+        "slices": [
+          {
+            "id": "sli_0000direct",
+            "duration": "PT03H05M",
+            "fare_brand_name": "Value",
+            "origin": { "iata_code": "DXB", "name": "Dubai International", "city_name": "Dubai" },
+            "destination": { "iata_code": "BOM", "name": "Chhatrapati Shivaji International", "city_name": "Mumbai" },
+            "segments": [
+              {
+                "id": "seg_0000direct",
+                "origin": { "iata_code": "DXB", "name": "Dubai International", "city_name": "Dubai" },
+                "destination": { "iata_code": "BOM", "name": "Chhatrapati Shivaji International", "city_name": "Mumbai" },
+                "departing_at": "2026-11-10T09:30:00",
+                "arriving_at": "2026-11-10T14:05:00",
+                "duration": "PT03H05M",
+                "marketing_carrier": { "iata_code": "G9", "name": "Air Arabia" },
+                "operating_carrier": { "iata_code": "G9", "name": "Air Arabia" },
+                "marketing_carrier_flight_number": "451",
+                "aircraft": { "name": "Airbus A320" },
+                "stops": [],
+                "passengers": [
+                  {
+                    "passenger_id": "pas_0000AaBbCcDd",
+                    "cabin_class": "economy",
+                    "cabin_class_marketing_name": "Economy",
+                    "baggages": [
+                      { "type": "carry_on", "quantity": 1 },
+                      { "type": "checked", "quantity": 0 }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "off_0000connect",
+        "live_mode": false,
+        "total_amount": "505.00",
+        "total_currency": "AED",
+        "base_amount": "420.00",
+        "tax_amount": "85.00",
+        "expires_at": "2026-10-20T10:00:00.000000Z",
+        "owner": { "id": "arl_wy", "iata_code": "WY", "name": "Oman Air" },
+        "passengers": [ { "id": "pas_0000AaBbCcDd", "type": "adult" } ],
+        "slices": [
+          {
+            "id": "sli_0000connect",
+            "duration": "PT09H25M",
+            "fare_brand_name": "Basic",
+            "origin": { "iata_code": "DXB", "name": "Dubai International", "city_name": "Dubai" },
+            "destination": { "iata_code": "BOM", "name": "Chhatrapati Shivaji International", "city_name": "Mumbai" },
+            "segments": [
+              {
+                "id": "seg_0000leg1",
+                "origin": { "iata_code": "DXB", "name": "Dubai International", "city_name": "Dubai" },
+                "destination": { "iata_code": "MCT", "name": "Muscat International", "city_name": "Muscat" },
+                "departing_at": "2026-11-10T19:15:00",
+                "arriving_at": "2026-11-10T20:30:00",
+                "duration": "PT01H15M",
+                "marketing_carrier": { "iata_code": "WY", "name": "Oman Air" },
+                "operating_carrier": { "iata_code": "WY", "name": "Oman Air" },
+                "marketing_carrier_flight_number": "612",
+                "aircraft": { "name": "Boeing 737-800" },
+                "stops": [],
+                "passengers": [
+                  {
+                    "passenger_id": "pas_0000AaBbCcDd",
+                    "cabin_class": "economy",
+                    "cabin_class_marketing_name": "Economy",
+                    "baggages": [ { "type": "checked", "quantity": 2 } ]
+                  }
+                ]
+              },
+              {
+                "id": "seg_0000leg2",
+                "origin": { "iata_code": "MCT", "name": "Muscat International", "city_name": "Muscat" },
+                "destination": { "iata_code": "BOM", "name": "Chhatrapati Shivaji International", "city_name": "Mumbai" },
+                "departing_at": "2026-11-11T00:10:00",
+                "arriving_at": "2026-11-11T04:40:00",
+                "duration": "PT02H30M",
+                "marketing_carrier": { "iata_code": "WY", "name": "Oman Air" },
+                "operating_carrier": { "iata_code": "WY", "name": "Oman Air" },
+                "marketing_carrier_flight_number": "203",
+                "aircraft": { "name": "Airbus A320" },
+                "stops": [ { "id": "sto_0000technical" } ],
+                "passengers": [
+                  {
+                    "passenger_id": "pas_0000AaBbCcDd",
+                    "cabin_class": "economy",
+                    "cabin_class_marketing_name": "Economy",
+                    "baggages": [ { "type": "checked", "quantity": 1 } ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

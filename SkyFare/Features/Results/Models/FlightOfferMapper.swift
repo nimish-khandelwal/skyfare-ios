@@ -7,53 +7,50 @@
 
 import Foundation
 
-/// Turns an Amadeus offer payload into the model the UI renders, resolving the code
-/// dictionaries the API returns alongside the offers.
+/// Turns a provider payload into the model the UI renders.
+///
+/// Everything provider-specific stops here: nothing above this type knows which flight API
+/// the data came from.
 struct FlightOfferMapper: Sendable {
-    private let carriers: [String: String]
-    private let aircraft: [String: String]
-
-    init(dictionaries: AmadeusDictionaries?) {
-        carriers = dictionaries?.carriers ?? [:]
-        aircraft = dictionaries?.aircraft ?? [:]
-    }
-
-    func map(_ payloads: [FlightOfferPayload]) -> [FlightOffer] {
+    func map(_ payloads: [OfferPayload]) -> [FlightOffer] {
         payloads.compactMap(map)
     }
 
-    func map(_ payload: FlightOfferPayload) -> FlightOffer? {
-        guard let totalPrice = Decimal(string: payload.price.grandTotal ?? payload.price.total) else {
+    func map(_ payload: OfferPayload) -> FlightOffer? {
+        guard let totalPrice = Decimal(string: payload.totalAmount) else {
             return nil
         }
 
-        let itineraries = payload.itineraries.enumerated().map { index, itinerary in
-            map(itinerary, id: index)
+        let itineraries = payload.slices.enumerated().map { index, slice in
+            map(slice, id: index)
         }
 
-        guard !itineraries.isEmpty else { return nil }
+        guard !itineraries.isEmpty, itineraries.allSatisfy({ !$0.segments.isEmpty }) else {
+            return nil
+        }
 
-        let fareDetails = payload.travelerPricings?.first?.fareDetailsBySegment
-        let cabinCode = fareDetails?.first?.cabin ?? ""
+        let segmentPassengers = payload.slices
+            .flatMap(\.segments)
+            .map { $0.passengers ?? [] }
 
         return FlightOffer(
             id: payload.id,
             itineraries: itineraries,
             totalPrice: totalPrice,
-            basePrice: payload.price.base.flatMap { Decimal(string: $0) },
-            currencyCode: payload.price.currency,
-            seatsRemaining: payload.numberOfBookableSeats,
-            validatingCarrier: carrier(for: payload.validatingAirlineCodes?.first
-                ?? payload.itineraries.first?.segments.first?.carrierCode ?? ""),
-            cabin: CabinClass(rawValue: cabinCode),
-            includedCheckedBags: fareDetails?
-                .compactMap { $0.includedCheckedBags?.quantity }
-                .min() ?? 0,
-            travellerCount: payload.travelerPricings?.count ?? 1
+            basePrice: payload.baseAmount.flatMap { Decimal(string: $0) },
+            currencyCode: payload.totalCurrency,
+            seatsRemaining: nil,
+            validatingCarrier: carrier(
+                from: payload.owner,
+                fallback: payload.slices.first?.segments.first?.marketingCarrier
+            ),
+            cabin: cabinClass(from: segmentPassengers),
+            includedCheckedBags: checkedBags(from: segmentPassengers),
+            travellerCount: max(1, payload.passengers?.count ?? 1)
         )
     }
 
-    private func map(_ payload: ItineraryPayload, id: Int) -> Itinerary {
+    private func map(_ payload: SlicePayload, id: Int) -> Itinerary {
         let segments = payload.segments.map(map)
         let declaredDuration = payload.duration.flatMap(ISO8601Duration.seconds(from:))
         let summedDuration = segments.reduce(0) { $0 + $1.duration }
@@ -66,29 +63,57 @@ struct FlightOfferMapper: Sendable {
     }
 
     private func map(_ payload: SegmentPayload) -> FlightSegment {
-        let fallbackDuration = payload.arrival.at.timeIntervalSince(payload.departure.at)
+        let fallbackDuration = payload.arrivingAt.timeIntervalSince(payload.departingAt)
 
         return FlightSegment(
             id: payload.id,
             departure: SegmentPoint(
-                iataCode: payload.departure.iataCode,
-                terminal: payload.departure.terminal,
-                date: payload.departure.at
+                iataCode: payload.origin.iataCode ?? "",
+                terminal: nil,
+                date: payload.departingAt
             ),
             arrival: SegmentPoint(
-                iataCode: payload.arrival.iataCode,
-                terminal: payload.arrival.terminal,
-                date: payload.arrival.at
+                iataCode: payload.destination.iataCode ?? "",
+                terminal: nil,
+                date: payload.arrivingAt
             ),
-            carrier: carrier(for: payload.carrierCode),
-            flightNumber: payload.number,
-            aircraftName: payload.aircraft?.code.flatMap { aircraft[$0]?.capitalizedWords },
+            carrier: carrier(from: payload.marketingCarrier, fallback: payload.operatingCarrier),
+            flightNumber: payload.marketingCarrierFlightNumber ?? "",
+            aircraftName: payload.aircraft?.name,
             duration: payload.duration.flatMap(ISO8601Duration.seconds(from:)) ?? max(0, fallbackDuration),
-            technicalStops: payload.numberOfStops ?? 0
+            technicalStops: payload.stops?.count ?? 0
         )
     }
 
-    private func carrier(for code: String) -> Carrier {
-        Carrier(code: code, name: carriers[code]?.capitalizedWords ?? "")
+    private func carrier(
+        from primary: OfferPayload.Carrier?,
+        fallback: OfferPayload.Carrier?
+    ) -> Carrier {
+        let source = primary ?? fallback
+
+        return Carrier(
+            code: source?.iataCode ?? "",
+            name: source?.name ?? ""
+        )
+    }
+
+    private func cabinClass(from segmentPassengers: [[SegmentPayload.SegmentPassenger]]) -> CabinClass? {
+        segmentPassengers
+            .flatMap { $0 }
+            .compactMap(\.cabinClass)
+            .compactMap(CabinClass.init(rawValue:))
+            .first
+    }
+
+    /// An offer only counts as including a checked bag when every segment allows one.
+    private func checkedBags(from segmentPassengers: [[SegmentPayload.SegmentPassenger]]) -> Int {
+        let perSegment = segmentPassengers.map { passengers in
+            passengers
+                .flatMap { $0.baggages ?? [] }
+                .filter { $0.type == "checked" }
+                .reduce(0) { $0 + ($1.quantity ?? 0) }
+        }
+
+        return perSegment.min() ?? 0
     }
 }

@@ -71,7 +71,7 @@ struct FlightSearchView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Demo data")
                     .font(.subheadline.weight(.semibold))
-                Text("Add Amadeus credentials to Config/Secrets.xcconfig for live flights.")
+                Text("Add a Duffel access token to Config/Secrets.xcconfig for live flights.")
                     .font(.caption)
             }
         }
