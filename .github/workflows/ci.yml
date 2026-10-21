@@ -45,7 +45,7 @@ jobs:
           echo "Using simulator $UDID"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
-      - name: Unit tests
+      - name: Test
         shell: bash
         run: |
           set -o pipefail
@@ -54,26 +54,16 @@ jobs:
             -scheme SkyFare \
             -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.udid }}" \
             -only-testing:SkyFareTests \
-            -enableCodeCoverage YES \
-            -resultBundlePath UnitTests.xcresult
-
-      - name: UI tests
-        shell: bash
-        run: |
-          set -o pipefail
-          xcodebuild test \
-            -project SkyFare.xcodeproj \
-            -scheme SkyFare \
-            -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.udid }}" \
             -only-testing:SkyFareUITests \
             -skip-testing:SkyFareUITests/ScreenshotUITests \
-            -resultBundlePath UITests.xcresult
+            -enableCodeCoverage YES \
+            -resultBundlePath Tests.xcresult
 
       - name: Coverage summary
         if: always()
         run: |
-          if [ -d UnitTests.xcresult ]; then
-            xcrun xccov view --report --only-targets UnitTests.xcresult
+          if [ -d Tests.xcresult ]; then
+            xcrun xccov view --report --only-targets Tests.xcresult
           fi
 
       - name: Upload result bundles
@@ -81,7 +71,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: xcresults
-          path: |
-            UnitTests.xcresult
-            UITests.xcresult
+          path: Tests.xcresult
           retention-days: 5

@@ -164,15 +164,19 @@ bundle exec fastlane screenshots   # regenerates docs/screenshots
 | UI (XCUITest) | 7 | Disabled-until-valid search, full search journey, passenger sheet rules, airline filtering, sorting, screenshot capture |
 
 Coverage is **94%** across the app target and **93%** across the logic layer
-(models, view models, networking) measured by `xccov`.
+(models, view models, networking), measured by `xccov` over both suites — the same number
+CI prints on every run.
 
 ---
 
 ## CI/CD
 
 GitHub Actions runs on every push and pull request: generates the project with XcodeGen,
-resolves an available simulator at runtime, runs the unit and UI suites separately, and prints
-the coverage report. Result bundles are uploaded as artifacts when a run fails.
+resolves an available simulator at runtime, runs both suites, and prints the coverage report.
+The result bundle is uploaded as an artifact when a run fails.
+
+CI runs Xcode 16.4 / Swift 6.1 on an iOS 18.5 simulator while local development is on
+Xcode 27 / Swift 6.4, so the project is verified against two toolchains on every push.
 
 Fastlane holds the same commands for local use, plus a `beta` lane that builds and uploads to
 TestFlight. That lane needs signing credentials (`SKYFARE_TEAM_ID`, `SKYFARE_APPLE_ID`) which
