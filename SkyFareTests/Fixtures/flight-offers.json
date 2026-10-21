@@ -1,0 +1,134 @@
+{
+  "meta": { "count": 2 },
+  "data": [
+    {
+      "type": "flight-offer",
+      "id": "1",
+      "source": "GDS",
+      "instantTicketingRequired": false,
+      "nonHomogeneous": false,
+      "oneWay": false,
+      "lastTicketingDate": "2026-11-01",
+      "numberOfBookableSeats": 7,
+      "itineraries": [
+        {
+          "duration": "PT3H5M",
+          "segments": [
+            {
+              "departure": { "iataCode": "DXB", "terminal": "2", "at": "2026-11-10T09:30:00" },
+              "arrival": { "iataCode": "BOM", "terminal": "2", "at": "2026-11-10T14:05:00" },
+              "carrierCode": "G9",
+              "number": "451",
+              "aircraft": { "code": "320" },
+              "operating": { "carrierCode": "G9" },
+              "duration": "PT3H5M",
+              "id": "1",
+              "numberOfStops": 0,
+              "blacklistedInEU": false
+            }
+          ]
+        }
+      ],
+      "price": {
+        "currency": "AED",
+        "total": "650.00",
+        "base": "500.00",
+        "fees": [ { "amount": "0.00", "type": "SUPPLIER" } ],
+        "grandTotal": "650.00"
+      },
+      "pricingOptions": { "fareType": [ "PUBLISHED" ], "includedCheckedBagsOnly": false },
+      "validatingAirlineCodes": [ "G9" ],
+      "travelerPricings": [
+        {
+          "travelerId": "1",
+          "fareOption": "STANDARD",
+          "travelerType": "ADULT",
+          "price": { "currency": "AED", "total": "650.00", "base": "500.00" },
+          "fareDetailsBySegment": [
+            {
+              "segmentId": "1",
+              "cabin": "ECONOMY",
+              "fareBasis": "ZL1YXSB",
+              "class": "Z",
+              "includedCheckedBags": { "quantity": 0 }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flight-offer",
+      "id": "2",
+      "source": "GDS",
+      "oneWay": false,
+      "numberOfBookableSeats": 3,
+      "lastTicketingDate": "2026-11-02",
+      "itineraries": [
+        {
+          "duration": "PT9H25M",
+          "segments": [
+            {
+              "departure": { "iataCode": "DXB", "terminal": "3", "at": "2026-11-10T19:15:00" },
+              "arrival": { "iataCode": "MCT", "at": "2026-11-10T20:30:00" },
+              "carrierCode": "WY",
+              "number": "612",
+              "aircraft": { "code": "73H" },
+              "duration": "PT1H15M",
+              "id": "2",
+              "numberOfStops": 0
+            },
+            {
+              "departure": { "iataCode": "MCT", "at": "2026-11-11T00:10:00" },
+              "arrival": { "iataCode": "BOM", "terminal": "2", "at": "2026-11-11T04:40:00" },
+              "carrierCode": "WY",
+              "number": "203",
+              "aircraft": { "code": "320" },
+              "duration": "PT2H30M",
+              "id": "3",
+              "numberOfStops": 1
+            }
+          ]
+        }
+      ],
+      "price": {
+        "currency": "AED",
+        "total": "505.00",
+        "base": "420.00",
+        "grandTotal": "505.00"
+      },
+      "validatingAirlineCodes": [ "WY" ],
+      "travelerPricings": [
+        {
+          "travelerId": "1",
+          "fareOption": "STANDARD",
+          "travelerType": "ADULT",
+          "price": { "currency": "AED", "total": "505.00" },
+          "fareDetailsBySegment": [
+            {
+              "segmentId": "2",
+              "cabin": "ECONOMY",
+              "class": "T",
+              "includedCheckedBags": { "quantity": 2 }
+            },
+            {
+              "segmentId": "3",
+              "cabin": "ECONOMY",
+              "class": "T",
+              "includedCheckedBags": { "quantity": 1 }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "dictionaries": {
+    "locations": {
+      "DXB": { "cityCode": "DXB", "countryCode": "AE" },
+      "BOM": { "cityCode": "BOM", "countryCode": "IN" },
+      "MCT": { "cityCode": "MCT", "countryCode": "OM" }
+    },
+    "aircraft": { "320": "AIRBUS A320", "73H": "BOEING 737-800" },
+    "currencies": { "AED": "UAE DIRHAM" },
+    "carriers": { "G9": "AIR ARABIA", "WY": "OMAN AIR" }
+  }
+}

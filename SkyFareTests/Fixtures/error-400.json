@@ -1,0 +1,11 @@
+{
+  "errors": [
+    {
+      "status": 400,
+      "code": 32171,
+      "title": "MANDATORY DATA MISSING",
+      "detail": "departureDate is required",
+      "source": { "parameter": "departureDate" }
+    }
+  ]
+}
