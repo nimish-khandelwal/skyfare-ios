@@ -30,7 +30,7 @@ Hit run. It works straight away — no API key, no signup.
   (an infant can't fly without an adult, nine seats max)
 - Results you can sort by price, duration or departure time
 - Filters for stops, airline, departure window and whether a checked bag is included
-- 136 tests, 94% coverage, no compiler warnings
+- 144 tests, 94% coverage, no compiler warnings
 - CI on every push
 
 ## What's next
@@ -59,6 +59,10 @@ cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig
 
 That file is git-ignored. Duffel's test mode returns a fictional airline rather than
 real schedules, which is fine — it exercises the same code path.
+
+The app only accepts a `duffel_test_` token. Hand it a live one and it ignores it and
+stays on sample data, so there is no way for this project to reach real inventory or
+run up a bill. There's a test that holds that guarantee in place.
 
 ## How it's built
 
@@ -91,7 +95,7 @@ bundle install
 bundle exec fastlane test
 ```
 
-129 unit tests and 7 UI tests. The unit tests run against recorded API responses, so
+137 unit tests and 7 UI tests. The unit tests run against recorded API responses, so
 they're fast and don't need a network. The UI tests drive the real app and also capture
 the screenshots above.
 

@@ -12,12 +12,21 @@ struct AppConfiguration: Sendable, Equatable {
     static let defaultBaseURL = URL(string: "https://api.duffel.com")!
     static let defaultAPIVersion = "v2"
 
+    /// Duffel test tokens carry this prefix. Live tokens use `duffel_live_`.
+    static let testTokenPrefix = "duffel_test_"
+
     let baseURL: URL
     let accessToken: String
     let apiVersion: String
 
     var hasCredentials: Bool {
         !accessToken.isEmpty
+    }
+
+    /// SkyFare is a portfolio project and deliberately refuses anything but a sandbox token,
+    /// so it cannot reach real inventory or run up a bill.
+    var isTestToken: Bool {
+        accessToken.hasPrefix(Self.testTokenPrefix)
     }
 
     /// Headers every request to the flight provider must carry.

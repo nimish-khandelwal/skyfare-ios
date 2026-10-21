@@ -11,7 +11,7 @@ struct FlightSearchView: View {
     @ObservedObject var viewModel: FlightSearchViewModel
     @EnvironmentObject private var coordinator: AppCoordinator
 
-    let isUsingSampleData: Bool
+    let mode: AppDependencies.Mode
 
     @FocusState private var focusedField: AirportField?
     @State private var isShowingPassengers = false
@@ -19,8 +19,8 @@ struct FlightSearchView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                if isUsingSampleData {
-                    sampleDataBanner
+                if let title = mode.bannerTitle, let message = mode.bannerMessage {
+                    banner(title: title, message: message)
                 }
 
                 tripTypePicker
@@ -65,13 +65,13 @@ struct FlightSearchView: View {
         }
     }
 
-    private var sampleDataBanner: some View {
+    private func banner(title: String, message: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "wifi.slash")
             VStack(alignment: .leading, spacing: 2) {
-                Text("Demo data")
+                Text(title)
                     .font(.subheadline.weight(.semibold))
-                Text("Add a Duffel access token to Config/Secrets.xcconfig for live flights.")
+                Text(message)
                     .font(.caption)
             }
         }
@@ -228,7 +228,7 @@ struct FlightSearchView: View {
                 airportRepository: SampleAirportRepository(),
                 offerRepository: SampleFlightOfferRepository()
             ),
-            isUsingSampleData: true
+            mode: .sampleNoToken
         )
         .environmentObject(AppCoordinator())
     }

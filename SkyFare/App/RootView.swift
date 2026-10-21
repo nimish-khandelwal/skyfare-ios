@@ -27,7 +27,7 @@ struct RootView: View {
         NavigationStack(path: $coordinator.path) {
             FlightSearchView(
                 viewModel: searchViewModel,
-                isUsingSampleData: dependencies.isUsingSampleData
+                mode: dependencies.mode
             )
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
