@@ -1,0 +1,118 @@
+default_platform(:ios)
+
+PROJECT = "SkyFare.xcodeproj"
+SCHEME = "SkyFare"
+SIMULATOR = ENV.fetch("SKYFARE_SIMULATOR", "iPhone 17 Pro")
+SCREENSHOT_DIR = "docs/screenshots"
+
+platform :ios do
+  desc "Regenerate SkyFare.xcodeproj from project.yml"
+  lane :generate do
+    sh("cd .. && xcodegen generate")
+  end
+
+  desc "Run the unit test suite"
+  lane :unit_tests do
+    generate
+    run_scan(["#{SCHEME}Tests"], "unit")
+  end
+
+  desc "Run the XCUITest suite"
+  lane :ui_tests do
+    generate
+    run_scan(["#{SCHEME}UITests"], "ui")
+  end
+
+  desc "Run every test target and print the coverage summary"
+  lane :test do
+    generate
+    run_scan(["#{SCHEME}Tests", "#{SCHEME}UITests"], "all")
+    coverage_summary("fastlane/test_output/all.xcresult")
+  end
+
+  desc "Capture the README screenshots into docs/screenshots"
+  lane :screenshots do
+    generate
+    run_scan(["#{SCHEME}UITests/ScreenshotUITests"], "screenshots")
+    export_screenshots("fastlane/test_output/screenshots.xcresult")
+  end
+
+  desc "Build and upload a TestFlight build"
+  lane :beta do
+    unless ENV["SKYFARE_TEAM_ID"] && ENV["SKYFARE_APPLE_ID"]
+      UI.user_error!(
+        "Set SKYFARE_TEAM_ID and SKYFARE_APPLE_ID before running the beta lane. " \
+        "Signing is not configured in this repository."
+      )
+    end
+
+    generate
+    run_scan(["#{SCHEME}Tests"], "unit")
+
+    increment_build_number(
+      build_number: number_of_commits.to_s,
+      xcodeproj: PROJECT
+    )
+
+    build_app(
+      project: PROJECT,
+      scheme: SCHEME,
+      export_method: "app-store",
+      output_directory: "fastlane/build"
+    )
+
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+
+  def run_scan(targets, bundle_name)
+    scan(
+      project: PROJECT,
+      scheme: SCHEME,
+      devices: [SIMULATOR],
+      only_testing: targets,
+      code_coverage: true,
+      result_bundle: true,
+      output_directory: "fastlane/test_output",
+      output_files: "#{bundle_name}.junit",
+      buildlog_path: "fastlane/test_output/logs",
+      clean: false
+    )
+
+    produced = "fastlane/test_output/#{SCHEME}.xcresult"
+    wanted = "fastlane/test_output/#{bundle_name}.xcresult"
+    sh("cd .. && rm -rf '#{wanted}' && mv '#{produced}' '#{wanted}'") if File.exist?("../#{produced}")
+  end
+
+  def coverage_summary(result_bundle)
+    report = sh(
+      "cd .. && xcrun xccov view --report --only-targets '#{result_bundle}'",
+      log: false
+    )
+    UI.success("Code coverage\n#{report}")
+  end
+
+  def export_screenshots(result_bundle)
+    require "json"
+    require "fileutils"
+
+    staging = "fastlane/test_output/attachments"
+    sh("cd .. && rm -rf '#{staging}' && xcrun xcresulttool export attachments " \
+       "--path '#{result_bundle}' --output-path '#{staging}'")
+
+    manifest = JSON.parse(File.read("../#{staging}/manifest.json"))
+    FileUtils.mkdir_p("../#{SCREENSHOT_DIR}")
+
+    manifest.each do |test|
+      (test["attachments"] || []).each do |attachment|
+        name = attachment["suggestedHumanReadableName"] || attachment["exportedFileName"]
+        name = name.sub(/_\d+_[A-F0-9-]+(?=\.png\z|\z)/, "")
+        name = "#{name}.png" unless name.end_with?(".png")
+        destination = "../#{SCREENSHOT_DIR}/#{name}"
+
+        FileUtils.cp("../#{staging}/#{attachment['exportedFileName']}", destination)
+        sh("sips -Z 1000 '#{File.expand_path(destination)}'", log: false)
+        UI.success("Saved #{SCREENSHOT_DIR}/#{name}")
+      end
+    end
+  end
+end

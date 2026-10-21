@@ -1,0 +1,3 @@
+app_identifier(ENV["SKYFARE_BUNDLE_ID"] || "com.nimishkhandelwal.skyfare")
+apple_id(ENV["SKYFARE_APPLE_ID"])
+team_id(ENV["SKYFARE_TEAM_ID"])
