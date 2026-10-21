@@ -33,12 +33,17 @@ jobs:
       - name: Pick a simulator
         id: simulator
         run: |
-          UDID=$(xcrun simctl list devices available --json \
-            | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];\
-print(next(x['udid'] for r in sorted(d, reverse=True) for x in d[r] \
-if 'iPhone' in x['name'] and x['isAvailable']))")
+          UDID=$(xcrun simctl list devices available \
+            | grep -E "iPhone" \
+            | tail -1 \
+            | sed -E 's/.*\(([A-F0-9-]{36})\).*/\1/')
+          if [ -z "$UDID" ]; then
+            echo "No iPhone simulator available" >&2
+            xcrun simctl list devices available >&2
+            exit 1
+          fi
+          echo "Using simulator $UDID"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
-          xcrun simctl list devices available | grep "$UDID"
 
       - name: Unit tests
         shell: bash
